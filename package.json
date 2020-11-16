@@ -18,6 +18,7 @@
   },
   "scripts": {
     "launch": "ganache-cli",
+    "test:sol": "truffle test",
     "build": "truffle compile",
     "deploy:dev": "truffle migrate --reset --skip-dry-run",
     "deploy:testnet": "truffle migrate --network rinkeby --reset --skip-dry-run",
