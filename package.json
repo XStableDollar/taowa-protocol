@@ -1,0 +1,9 @@
+{
+  "name": "taowa-protocol",
+  "version": "0.0.1",
+  "description": "taowa protocol",
+  "main": "index.js",
+  "repository": "https://github.com/rebase-network/taowa-protocol",
+  "author": "Rebase",
+  "license": "BSD 3-Clause License"
+}
