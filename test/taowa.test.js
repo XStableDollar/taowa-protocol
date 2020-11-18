@@ -19,20 +19,24 @@ contract('Taowa', ([alice, bob]) => {
     const _tokens = [this.abc.address, this.def.address]
     const _amounts = [200, 130]
 
-    const result = await taowa.create("abc", "abc", _tokens, _amounts);
+    const result = await taowa.create("rebase", "rebase", _tokens, _amounts);
 
     const logs = result.logs
 
     let tokenAddr = "";
+
+    console.log(taowa.address)
+
+    const groupsLength = await taowa.groupsLength()
+    console.log(groupsLength.toNumber())
+
+    const group = await taowa.groups(0)
 
     for (const log of logs) {
       assert.equal(log.event, "Created")
 
       const args = log.args;
       console.log(args)
-
-      assert.equal(args.name, "abc")
-      assert.equal(args.symbol, "abc")
 
       tokenAddr = args.tokenAddr
 
@@ -55,8 +59,9 @@ contract('Taowa', ([alice, bob]) => {
       console.log(amount)
 
       assert.equal(amount, 200)
-
+      assert.equal(tokenAddr, group)
     }
+
   });
 
 });
