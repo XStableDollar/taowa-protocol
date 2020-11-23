@@ -18,12 +18,20 @@ contract CustomToken is ERC20 {
     }
 
     function fuse(address[] memory _materials, uint[] memory _amounts) public {
+        require(_materials.length > 0, "materials length must > 0");
         require(_materials.length == _amounts.length);
-        require(_materials.length > 0, "materials>0");
 
         materials = _materials;
         amounts = _amounts;
         materialength = _materials.length;
+    }
+
+    function getMaterials() public view returns(address[] memory) {
+        return materials;
+    }
+
+    function getAmounts() public view returns(uint[] memory) {
+        return amounts;
     }
 
     function mint(address to, uint256 amount) public {

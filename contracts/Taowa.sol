@@ -24,4 +24,8 @@ contract Taowa is ITaowa{
         return addr;
     }
 
+    function getTokenList() public view returns(address[] memory) {
+        return groups;
+    }
+
 }
