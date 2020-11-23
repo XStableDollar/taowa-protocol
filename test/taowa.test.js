@@ -23,7 +23,7 @@ contract('Taowa getList', ([alice, bob, carol]) => {
     const _token2 = [this.token4.address, this.token5.address]
 
     await this.taowa.create("rebase", "rebase", _token1, [200, 130, 150]);
-    await this.taowa.create("rebase", "rebase", _token2, [30, 50]);
+    await this.taowa.create("elixir", "elixir", _token2, [30, 50]);
 
     console.log("taowa address: " , this.taowa.address)
 
@@ -47,14 +47,21 @@ contract('Taowa getList', ([alice, bob, carol]) => {
       const amounts = await contract.methods.getAmounts().call()
       const materials  = await contract.methods.getMaterials().call()
 
+      for (let i = 0; i < materialength; i++) {
+        const material = await contract.methods.materials(i).call()
+        const amount = await contract.methods.amounts(i).call()
+
+        console.log("materials property: " ,material)
+        console.log("amounts property: ", amount)
+      }
+
       console.log(synthesis)
       console.log(created)
       console.log(owner)
       console.log(materialength)
 
-      console.log("-".repeat(50))
-      console.log(materials)
-      console.log(amounts)
+      console.log("getMaterials function: " , materials)
+      console.log("getAmounts function: ",  amounts)
       console.log("-".repeat(50))
     }
 
