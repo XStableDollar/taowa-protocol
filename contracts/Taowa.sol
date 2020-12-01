@@ -17,6 +17,9 @@ contract Taowa is ITaowa{
     // 铸造事件
     event MintMulti(address tokenAddr, uint256 supply);
 
+    // 赎回事件
+    event Redeem(address tokenAddr, uint256 supply);
+
     function create(string memory _name, string memory _symbol, address[] memory _materials, uint[] memory _amounts) override external returns(address) {
         CustomToken token = new CustomToken(_name, _symbol);
         token.fuse(_materials, _amounts);
@@ -41,11 +44,13 @@ contract Taowa is ITaowa{
         require(len > 0, "_tokens length must > 0");
         require(len == _amounts.length, "lenght must be equal");
 
+        // TODO
+        // _tokens 必须与 token.materials 一致，顺序不重要
+
         // 将资产划转到合约
         for(uint256 i = 0; i < len; i++) {
-            address addr = _tokens[i];
+            CustomToken token = CustomToken(_tokens[i]);
 
-            ERC20 token = ERC20(addr);
             token.transferFrom(msg.sender, address(this), _amounts[i]); // safeTransferFrom
         }
 
@@ -53,6 +58,27 @@ contract Taowa is ITaowa{
 
         CustomToken(erc20Addr).mint(msg.sender, 1e18);
         return 1e18;
+    }
+
+    function redeem(address erc20Addr, uint256 _amount)
+    override external returns (uint256){
+        CustomToken token = CustomToken(erc20Addr);
+
+        uint len = token.materialength();
+
+        for(uint i = 0; i < len; i++) {
+            uint num = token.amounts(i) * _amount;
+
+            ERC20 newtoken = ERC20(token.materials(i));
+
+            // 返还原来的币种
+            newtoken.transfer(msg.sender, num); // safeTransferFrom
+        }
+
+        uint burn = _amount * (1e18);
+        token.burn(msg.sender, burn); // 销毁合成的币种
+        emit Redeem(erc20Addr, burn);
+        return burn;
     }
 
     function getTokenList() public view returns(address[] memory) {
