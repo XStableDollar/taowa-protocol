@@ -1,20 +1,19 @@
 const { expectRevert, time } = require('@openzeppelin/test-helpers')
-const Taowa = artifacts.require('Taowa.sol')
-const erc20 = artifacts.require('MetaToken.sol')
+const BN = require('bn.js')
 
-const Web3 = require("web3")
-const abi = require('./abi.json')
-const web3 = new Web3("http://localhost:8545")
+const Taowa = artifacts.require('Taowa.sol')
+const Asset = artifacts.require('CustomToken.sol')
+const erc20 = artifacts.require('MetaToken.sol')
 
 contract('Taowa contract', ([alice, bob, carol]) => {
 
   beforeEach(async () => {
-    const num = 100000
-    this.token1 = await erc20.new('token1', 'token1', { from: alice })
-    this.token2 = await erc20.new('token2', 'token2', { from: bob })
+    const num = 10000
+    this.token1 = await erc20.new('token1', 'token1', { from: carol })
+    this.token2 = await erc20.new('token2', 'token2', { from: carol })
     this.token3 = await erc20.new('token3', 'token3', { from: carol })
-    this.token4 = await erc20.new('token4', 'token4', { from: alice })
-    this.token5 = await erc20.new('token5', 'token5', { from: alice })
+    this.token4 = await erc20.new('token4', 'token4', { from: carol })
+    this.token5 = await erc20.new('token5', 'token5', { from: carol })
 
     await this.token1.mint(alice, num)
     await this.token2.mint(alice, num)
@@ -22,7 +21,7 @@ contract('Taowa contract', ([alice, bob, carol]) => {
     await this.token4.mint(alice, num)
     await this.token5.mint(alice, num)
 
-    this.taowa = await Taowa.deployed()
+    this.taowa = await Taowa.deployed(bob)
 
     console.log("taowa address: " , this.taowa.address)
   })
@@ -46,19 +45,19 @@ contract('Taowa contract', ([alice, bob, carol]) => {
 
       console.log("tokenAddr: ", tokenAddr)
 
-      const contract = new web3.eth.Contract(abi, tokenAddr)
+      const contract = await Asset.at(tokenAddr)
 
-      const synthesis = await contract.methods.synthesis().call()
-      const created = await contract.methods.created().call()
-      const owner = await contract.methods.owner().call()
-      const materialength = await contract.methods.materialength().call()
+      const synthesis = await contract.synthesis()
+      const created = await contract.created()
+      const owner = await contract.owner()
+      const materialength = await contract.materialength()
 
-      const amounts = await contract.methods.getAmounts().call()
-      const materials  = await contract.methods.getMaterials().call()
+      const amounts = await contract.getAmounts()
+      const materials  = await contract.getMaterials()
 
       for (let i = 0; i < materialength; i++) {
-        const material = await contract.methods.materials(i).call()
-        const amount = await contract.methods.amounts(i).call()
+        const material = await contract.materials(i)
+        const amount = await contract.amounts(i)
 
         console.log("materials property: " ,material)
         console.log("amounts property: ", amount)
@@ -92,31 +91,60 @@ contract('Taowa contract', ([alice, bob, carol]) => {
 
     console.log(tokenAddr)
 
-    const contract = new web3.eth.Contract(abi, tokenAddr)
+    const contract = await Asset.at(tokenAddr)
 
-    const amounts = await contract.methods.getAmounts().call()
-    const materials = await contract.methods.getMaterials().call()
+    const amounts = await contract.getAmounts()
+    const materials = await contract.getMaterials()
+    let balance = await contract.balanceOf(alice)
 
-    let balance = await contract.methods.balanceOf(alice).call()
     assert.equal(balance, 0)
 
-    // await this.token1.increaseAllowance(this.taowa.address, 1000)
-    // await this.token2.increaseAllowance(this.taowa.address, 1000)
+    // 非原子化操作 感觉有风险
+    await this.token1.approve(this.taowa.address, amounts[0])
+    await this.token2.approve(this.taowa.address, amounts[1])
 
-    await this.token1.approve(this.taowa.address, 1000)
-    await this.token2.approve(this.taowa.address, 1000)
-
-    await this.taowa.mintMulti(
+    await this.taowa.mintMulti( // 合成
       tokenAddr,
       materials,
       amounts,
       {from: alice}
     )
 
-    balance = await contract.methods.balanceOf(alice).call()
+    balance = await contract.balanceOf(alice)
     console.log('after', balance)
 
-    assert.equal(balance, 1*10**18)
+    assert.equal(balance, 1e18)
+  })
+
+  it('redeem', async () => {
+
+    const list = await this.taowa.getTokenList()
+
+    const tokenAddr = list[list.length-1]
+
+    console.log(tokenAddr)
+
+    const contract = await Asset.at(tokenAddr)
+
+    let balance = await contract.balanceOf(alice)
+
+    // 非原子化操作 感觉有风险
+    const tx = await contract.approve(this.taowa.address, balance, {from: alice})
+    console.log(tx.transactionHash)
+
+    const num = balance.div(new BN((1e18).toString()))
+
+    assert.equal(balance.toString(), "1000000000000000000")
+
+    await this.taowa.redeem(
+      tokenAddr,
+      num.toNumber(),
+      {from: alice}
+    )
+
+    balance = await contract.balanceOf(alice)
+    console.log("after balance ", balance.toString())
+    assert.equal(balance.toString(), "0")
 
   })
 
