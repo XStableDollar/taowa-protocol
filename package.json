@@ -18,10 +18,12 @@
   },
   "scripts": {
     "launch": "ganache-cli",
-    "test:sol": "truffle test",
     "build": "truffle compile",
+    "console": "truffle console",
+    "test:sol": "truffle test --stacktrace-extra",
     "deploy:dev": "truffle migrate --reset --skip-dry-run",
     "deploy:testnet": "truffle migrate --network rinkeby --reset --skip-dry-run",
-    "deploy:bsc": "truffle migrate --network bsc --reset --skip-dry-run"
+    "deploy:bsc": "truffle migrate --network bsc --reset --skip-dry-run",
+    "gen:sol": "truffle-flattener contracts/Taowa.sol > build/Taowa.sol"
   }
 }
