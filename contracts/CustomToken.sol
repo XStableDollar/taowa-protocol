@@ -34,10 +34,14 @@ contract CustomToken is ERC20 {
         return amounts;
     }
 
+    // TODO
+    // 控制权限
     function mint(address to, uint256 amount) public {
         _mint(to, amount);
     }
 
+    // TODO
+    // 控制权限
     function burn(address to, uint256 amount) public {
         _burn(to, amount);
     }
